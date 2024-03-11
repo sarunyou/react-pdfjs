@@ -4357,7 +4357,6 @@ const AnnotationEditorType = {
   DISABLE: -1,
   NONE: 0,
   FREETEXT: 3,
-  LINE: 4,
   HIGHLIGHT: 9,
   STAMP: 13,
   INK: 15
@@ -11657,7 +11656,7 @@ class ReversibleTransform extends Transform {
 
 
 const pdfjsVersion = "4.1.0";
-const pdfjsBuild = "7867165";
+const pdfjsBuild = "14586e6";
 
 })();
 

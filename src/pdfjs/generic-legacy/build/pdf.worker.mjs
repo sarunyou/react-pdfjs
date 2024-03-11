@@ -5005,7 +5005,6 @@ const AnnotationEditorType = {
   DISABLE: -1,
   NONE: 0,
   FREETEXT: 3,
-  LINE: 4,
   HIGHLIGHT: 9,
   STAMP: 13,
   INK: 15
@@ -56399,7 +56398,6 @@ class AnnotationFactory {
             promises.push(InkAnnotation.createNewAnnotation(xref, annotation, dependencies));
           }
           break;
-        case AnnotationEditorType.LINE:
         case AnnotationEditorType.INK:
           promises.push(InkAnnotation.createNewAnnotation(xref, annotation, dependencies));
           break;
@@ -59090,26 +59088,22 @@ class InkAnnotation extends MarkupAnnotation {
       rotation,
       thickness
     } = annotation;
-    console.log("paths", paths);
-    console.log("rect", rect);
-    const L = [...paths[0].points.slice(0, 2), ...paths[0].points.slice(-2)];
-    console.log("L", L);
     const ink = new Dict(xref);
     ink.set("Type", Name.get("Annot"));
-    ink.set("Subtype", Name.get("Line"));
+    ink.set("Subtype", Name.get("Ink"));
     ink.set("CreationDate", `D:${getModificationDate()}`);
-    ink.set("F", 4);
-    ink.set("L", L);
-    ink.set("IT", Name.get("LineArrow"));
-    ink.set("LE", [Name.get("None"), Name.get("OpenArrow")]);
     ink.set("Rect", rect);
-    ink.set("NM", getUuid());
+    ink.set("InkList", outlines?.points || paths.map(p => p.points));
+    ink.set("F", 4);
+    ink.set("Rotate", rotation);
     if (outlines) {
       ink.set("IT", Name.get("InkHighlight"));
     }
     const bs = new Dict(xref);
+    ink.set("BS", bs);
     bs.set("W", thickness);
     ink.set("C", Array.from(color, c => c / 255));
+    ink.set("CA", opacity);
     const n = new Dict(xref);
     ink.set("AP", n);
     if (apRef) {
@@ -59120,7 +59114,6 @@ class InkAnnotation extends MarkupAnnotation {
     return ink;
   }
   static async createNewAppearanceStream(annotation, xref, params) {
-    console.log("annotation", annotation);
     if (annotation.outlines) {
       return this.createNewAppearanceStreamForHighlight(annotation, xref, params);
     }
@@ -59131,12 +59124,10 @@ class InkAnnotation extends MarkupAnnotation {
       thickness,
       opacity
     } = annotation;
-    console.log("rect", rect);
-    const appearanceBuffer = [`q Q q 0 0 ${rect.at(2) - rect.at(0)} ${rect.at(3) - rect.at(1)} re W n /Cs1 cs 0 0 0 sc 7.467778 3.16336 m 2 2`, `l 4.349979 7.072238 l h f 2 J /Cs1 CS 0 0 0 SC q 1 0 0 1 -${rect.at(0).toFixed(2)} -${rect.at(1).toFixed(2)} cm`];
+    const appearanceBuffer = [`${thickness} w 1 J 1 j`, `${getPdfColor(color, false)}`];
     if (opacity !== 1) {
       appearanceBuffer.push("/R0 gs");
     }
-    console.log("paths", paths);
     const buffer = [];
     for (const {
       bezier
@@ -59146,11 +59137,11 @@ class InkAnnotation extends MarkupAnnotation {
       if (bezier.length === 2) {
         buffer.push(`${numberToString(bezier[0])} ${numberToString(bezier[1])} l S`);
       } else {
-        for (let i = 2, ii = bezier.length; i < ii; i += 2) {
-          const curve = bezier.slice(i, i + 2).map(numberToString).join(" ");
-          buffer.push(`${curve} l`);
+        for (let i = 2, ii = bezier.length; i < ii; i += 6) {
+          const curve = bezier.slice(i, i + 6).map(numberToString).join(" ");
+          buffer.push(`${curve} c`);
         }
-        buffer.push("S Q Q");
+        buffer.push("S");
       }
       appearanceBuffer.push(buffer.join("\n"));
     }
@@ -59159,7 +59150,7 @@ class InkAnnotation extends MarkupAnnotation {
     appearanceStreamDict.set("FormType", 1);
     appearanceStreamDict.set("Subtype", Name.get("Form"));
     appearanceStreamDict.set("Type", Name.get("XObject"));
-    appearanceStreamDict.set("BBox", [0, 0, rect.at(2) - rect.at(0), rect.at(3) - rect.at(1)]);
+    appearanceStreamDict.set("BBox", rect);
     appearanceStreamDict.set("Length", appearance.length);
     if (opacity !== 1) {
       const resources = new Dict(xref);
@@ -63117,7 +63108,7 @@ if (typeof window === "undefined" && !isNodeJS && typeof self !== "undefined" &&
 ;// CONCATENATED MODULE: ./src/pdf.worker.js
 
 const pdfjsVersion = "4.1.0";
-const pdfjsBuild = "7867165";
+const pdfjsBuild = "14586e6";
 
 })();
 

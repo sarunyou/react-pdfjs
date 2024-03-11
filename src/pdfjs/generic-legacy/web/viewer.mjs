@@ -6635,8 +6635,6 @@ const PDFViewerApplication = {
     if (this.pdfLoadingTask) {
       await this.close();
     }
-    const workerParams = _app_options_js__WEBPACK_IMPORTED_MODULE_9__.AppOptions.getAll(_app_options_js__WEBPACK_IMPORTED_MODULE_9__.OptionKind.WORKER);
-    Object.assign(pdfjs_lib__WEBPACK_IMPORTED_MODULE_8__.GlobalWorkerOptions, workerParams);
     if (args.url) {
       this.setTitleUsingUrl(args.originalUrl || args.url, args.url);
     }
@@ -19317,7 +19315,7 @@ _app_js__WEBPACK_IMPORTED_MODULE_3__ = (__webpack_async_dependencies__.then ? (a
 
 
 const pdfjsVersion = "4.1.0";
-const pdfjsBuild = "7867165";
+const pdfjsBuild = "14586e6";
 const AppConstants = {
   LinkTarget: _pdf_link_service_js__WEBPACK_IMPORTED_MODULE_2__.LinkTarget,
   RenderingStates: _ui_utils_js__WEBPACK_IMPORTED_MODULE_0__.RenderingStates,

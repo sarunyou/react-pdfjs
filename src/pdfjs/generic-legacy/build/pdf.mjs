@@ -9623,7 +9623,7 @@ class InternalRenderTask {
   }
 }
 const version = "4.1.0";
-const build = "7867165";
+const build = "14586e6";
 
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } });
@@ -15011,44 +15011,37 @@ class InkEditor extends editor_editor.AnnotationEditor {
     if (this.currentPath.length > 1 && x === lastX && y === lastY) {
       return;
     }
-    const currentPath = this.currentPath;
+    let currentPath = this.currentPath;
     let path2D = this.#currentPath2D;
     this.#currentPath2D = path2D = new Path2D();
     this.#hasSomethingToDraw = true;
-    if (currentPath.length === 1) {
-      currentPath.push([x, y]);
-    } else if (currentPath.length === 2) {
-      currentPath.pop();
-      currentPath.push([x, y]);
-    }
-    const [x0, y0] = currentPath[0];
+    currentPath.splice(1);
+    currentPath.push([x, y]);
+    const [x0, y0] = currentPath.at(0);
     const lineAngle = Math.atan2(y0 - y, x0 - x);
     let delta = Math.PI / 6;
-    const endSize = 10;
-    if (currentPath.length <= 2) {
-      path2D.moveTo(...currentPath[0]);
-      path2D.lineTo(x, y);
-      for (let i = 0; i < 2; i++) {
-        path2D.moveTo(x, y);
-        const arrowX = x + endSize * Math.cos(lineAngle + delta);
-        const arrowY = y + endSize * Math.sin(lineAngle + delta);
-        path2D.lineTo(arrowX, arrowY);
-        delta *= -1;
+    const endSize = 20;
+    path2D.moveTo(...currentPath.at(0));
+    path2D.lineTo(x, y);
+    for (let i = 0; i < 2; i++) {
+      path2D.moveTo(x, y);
+      const arrowX = x + endSize * Math.cos(lineAngle + delta);
+      const arrowY = y + endSize * Math.sin(lineAngle + delta);
+      path2D.lineTo(arrowX, arrowY);
+      for (let j = 0; j < endSize; j++) {
+        const arrowX = x + j * Math.cos(lineAngle + delta);
+        const arrowY = y + j * Math.sin(lineAngle + delta);
+        currentPath.push([arrowX, arrowY]);
       }
-      return;
+      currentPath.push([arrowX, arrowY]);
+      currentPath.push([x, y]);
+      delta *= -1;
     }
-    if (currentPath.length === 3) {
-      this.#currentPath2D = path2D = new Path2D();
-      path2D.moveTo(...currentPath[0]);
-    }
-    this.#makeBezierCurve(path2D, ...currentPath.at(-3), ...currentPath.at(-2), x, y);
   }
   #endPath() {
     if (this.currentPath.length === 0) {
       return;
     }
-    const lastPoint = this.currentPath.at(-1);
-    this.#currentPath2D.lineTo(...lastPoint);
   }
   #stopDrawing(x, y) {
     this.#requestFrameCallback = null;
@@ -15115,6 +15108,8 @@ class InkEditor extends editor_editor.AnnotationEditor {
       ctx.stroke(path);
     }
     ctx.stroke(this.#currentPath2D);
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
     ctx.restore();
   }
   #makeBezierCurve(path2D, x0, y0, x1, y1, x2, y2) {
@@ -15549,7 +15544,7 @@ class InkEditor extends editor_editor.AnnotationEditor {
     const rect = this.getRect(0, 0);
     const color = editor_editor.AnnotationEditor._colorManager.convert(this.ctx.strokeStyle);
     return {
-      annotationType: util.AnnotationEditorType.LINE,
+      annotationType: util.AnnotationEditorType.INK,
       color,
       thickness: this.thickness,
       opacity: this.opacity,
@@ -23268,7 +23263,7 @@ _display_api_js__WEBPACK_IMPORTED_MODULE_1__ = (__webpack_async_dependencies__.t
 
 
 const pdfjsVersion = "4.1.0";
-const pdfjsBuild = "7867165";
+const pdfjsBuild = "14586e6";
 
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } });
@@ -23919,7 +23914,6 @@ const AnnotationEditorType = {
   DISABLE: -1,
   NONE: 0,
   FREETEXT: 3,
-  LINE: 4,
   HIGHLIGHT: 9,
   STAMP: 13,
   INK: 15
